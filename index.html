@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pristen — Assets</title>
+    <meta name="description" content="Browse and download official Pristen assets such as logos and brand materials." />
+    <meta property="og:title" content="Pristen — Assets" />
+    <meta property="og:description"
+        content="Browse and download official Pristen assets such as logos and brand materials." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image"
+        content="https://raw.githubusercontent.com/pristen-br/pristen-files/main/logo/logo-profile-1.min.jpeg" />
+    <meta property="og:url" content="https://pristen-br.github.io/pristen-files/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pristen — Assets" />
+    <meta name="twitter:description"
+        content="Browse and download official Pristen assets such as logos and brand materials." />
+    <meta name="twitter:image"
+        content="https://raw.githubusercontent.com/pristen-br/pristen-files/main/logo/logo-profile-1.min.jpeg" />
+    <link rel="icon" href="https://raw.githubusercontent.com/pristen-br/pristen-files/main/logo/logo-profile-1.min.jpeg"
+        type="image/jpeg" />
+    <style>
+        :root {
+            --bg: #0d0c12;
+            --surface: #141320;
+            --surface-2: #19182a;
+            --text: #EDECF7;
+            --muted: #B8B6D4;
+            --brand: #8C7CFF;
+            --brand-2: #00E0C7;
+            --stroke: rgba(255, 255, 255, .08);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, Segoe UI, Inter, Roboto, Arial
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--stroke);
+            background: linear-gradient(180deg, rgba(13, 12, 18, .9), rgba(13, 12, 18, .55) 60%, transparent);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+        }
+
+        .wrap {
+            width: min(1200px, 92vw);
+            margin-inline: auto
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            background: linear-gradient(100deg, var(--brand), var(--brand-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        main {
+            padding: 18px;
+        }
+
+        .folder-title {
+            margin: 28px 0 12px;
+            font-size: 1.25rem;
+            border-left: 4px solid var(--brand);
+            padding-left: .6rem
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            transition: transform .2s ease, box-shadow .2s ease
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 22px rgba(0, 0, 0, .4)
+        }
+
+        .thumb {
+            width: 100%;
+            height: 160px;
+            display: grid;
+            place-items: center;
+            background: var(--surface-2);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 8px
+        }
+
+        img,
+        svg {
+            max-width: 100%;
+            max-height: 160px;
+            object-fit: contain
+        }
+
+        .filename {
+            font-size: .85rem;
+            color: var(--muted);
+            word-break: break-all;
+            text-align: center;
+            margin: 6px 0 10px
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap
+        }
+
+        .btn {
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--stroke);
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: #0b0a12;
+            font-weight: 800;
+            font-size: 0.8rem
+        }
+
+        .btn.ghost {
+            background: transparent;
+            color: var(--text)
+        }
+
+        .error {
+            color: var(--muted);
+            font-style: italic;
+            margin-top: 0.5rem
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="wrap">
+            <h1>Pristen — Assets</h1>
+        </div>
+    </header>
+    <main class="wrap" id="content">
+        <p>Loading files...</p>
+    </main>
+    <script>
+        const user = "pristen-br";
+        const repo = "pristen-files";
+        const branch = "main";
+        const folders = ["logo"];
+        const exts = ["png", "svg", "jpg", "jpeg", "webp"];
+
+        function apiUrl(path) {
+            return `https://api.github.com/repos/${user}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+        }
+
+        async function fetchFolder(folder) {
+            const res = await fetch(apiUrl(folder), { headers: { 'Accept': 'application/vnd.github+json' } });
+            if (!res.ok) {
+                console.warn(`Failed to fetch folder: ${folder} - ${res.status} ${res.statusText}`);
+                return null;
+            }
+            return res.json();
+        }
+
+        function createCard(file) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const thumb = document.createElement('div');
+            thumb.className = 'thumb';
+            const img = document.createElement('img');
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.src = file.download_url;
+            img.alt = file.name;
+            thumb.appendChild(img);
+
+            const name = document.createElement('div');
+            name.className = 'filename';
+            name.textContent = file.name;
+
+            const actions = document.createElement('div');
+            actions.className = 'actions';
+
+            const githubBtn = document.createElement('button');
+            githubBtn.className = 'btn ghost';
+            githubBtn.textContent = 'GitHub';
+            githubBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                window.open(file.html_url, '_blank');
+            });
+
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'btn ghost';
+            viewBtn.textContent = 'View Image';
+            viewBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                window.open(file.download_url, '_blank');
+            });
+
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'btn';
+            downloadBtn.textContent = 'Download';
+            downloadBtn.addEventListener('click', async e => {
+                e.stopPropagation();
+                try {
+                    const r = await fetch(file.download_url, { mode: 'cors' });
+                    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+                    const blob = await r.blob();
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = file.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                    a.remove();
+                } catch (err) {
+                    console.warn('Download failed, opening in new tab', err);
+                    window.open(file.download_url, '_blank');
+                }
+            });
+
+            actions.appendChild(githubBtn);
+            actions.appendChild(viewBtn);
+            actions.appendChild(downloadBtn);
+
+            card.appendChild(thumb);
+            card.appendChild(name);
+            card.appendChild(actions);
+
+            return card;
+        }
+
+        async function load() {
+            const container = document.getElementById('content');
+            container.innerHTML = '';
+
+            for (const folder of folders) {
+                const files = await fetchFolder(folder);
+                if (!files) {
+                    const errMsg = document.createElement('div');
+                    errMsg.className = 'error';
+                    errMsg.textContent = `Could not load folder "${folder}" in ${user}/${repo}@${branch}.`;
+                    container.appendChild(errMsg);
+                    continue;
+                }
+                const images = files.filter(f => f.type === 'file' && exts.some(ext => f.name.toLowerCase().endsWith('.' + ext)));
+
+                const title = document.createElement('div');
+                title.className = 'folder-title';
+                title.textContent = folder;
+                container.appendChild(title);
+
+                if (images.length) {
+                    const grid = document.createElement('div');
+                    grid.className = 'grid';
+                    images.forEach(imgFile => grid.appendChild(createCard(imgFile)));
+                    container.appendChild(grid);
+                } else {
+                    const noFiles = document.createElement('div');
+                    noFiles.className = 'error';
+                    noFiles.textContent = `No images found in folder "${folder}".`;
+                    container.appendChild(noFiles);
+                }
+            }
+        }
+
+        load();
+    </script>
+</body>
+
+</html>
